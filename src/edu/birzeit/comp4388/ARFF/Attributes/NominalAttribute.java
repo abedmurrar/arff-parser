@@ -16,7 +16,7 @@ public class NominalAttribute extends Attribute {
     public List<String> getClasses() {
         return classes;
     }
-    
+
     @Override
     public boolean validate(String value) {
         return classes.contains(value.trim());
@@ -29,6 +29,7 @@ public class NominalAttribute extends Attribute {
 
     @Override
     public String toString() {
-        return "@ATTRIBUTE " + name + " {" + classes.stream().map(Object::toString).collect(Collectors.joining(",")) + "}\n";
+        return "@ATTRIBUTE " + name + " {" + classes.stream().map(Object::toString).collect(Collectors.joining(","))
+                + "}";
     }
 }

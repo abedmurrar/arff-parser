@@ -30,7 +30,8 @@ public class Relation {
 
     public void addAttribute(Attribute attribute) throws DuplicateAttributeNameErrorException {
         if (this.attributes.contains(attribute)) {
-            throw new DuplicateAttributeNameErrorException("Attribute " + attribute.getName() + " already exists in relation " + this.getName());
+            throw new DuplicateAttributeNameErrorException(
+                    "Attribute " + attribute.getName() + " already exists in relation " + this.getName());
         }
         this.attributes.add(attribute);
     }
