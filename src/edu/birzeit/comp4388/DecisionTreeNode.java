@@ -1,35 +1,48 @@
 package edu.birzeit.comp4388;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+
+import edu.birzeit.comp4388.ARFF.Attributes.Attribute;
 
 public class DecisionTreeNode {
-    private Map<String, Integer> occurrences;
-    private List<DecisionTreeEdge> downEdges;
-    private DecisionTreeEdge upEdge;
+    // Because children are distributed depending on the value
+    private Map<String, DecisionTreeNode> children;
+    private final DecisionTreeNode parent;
+    private final Attribute attribute;
 
-    public DecisionTreeNode(DecisionTreeEdge upEdge) {
-        this.occurrences = new HashMap<>();
-        this.downEdges = new ArrayList<>();
-        this.upEdge = upEdge;
+    public DecisionTreeNode(DecisionTreeNode parent, Attribute attribute) {
+        this.parent = parent;
+        this.attribute = attribute;
     }
 
-    public void addEdge(DecisionTreeEdge edge) {
-        this.downEdges.add(edge);
+    public void addChild(String value, DecisionTreeNode child) {
+        children.put(value, child);
     }
 
-    public void addOccurence(String property, Integer value) {
-        this.occurrences.put(property, value);
+    /**
+     * @return the parent
+     */
+    public DecisionTreeNode getParent() {
+        return parent;
     }
 
-    public Map<String, Integer> getOccurrences() {
-        return occurrences;
+    /**
+     * @return the attribute
+     */
+    public Attribute getAttribute() {
+        return attribute;
     }
 
-    public List<DecisionTreeEdge> getDownEdges() {
-        return downEdges;
+    /**
+     * @return the children
+     */
+    public ArrayList<DecisionTreeNode> getChildren() {
+        return new ArrayList<DecisionTreeNode>(children.values());
     }
 
-    public DecisionTreeEdge getUpEdge() {
-        return upEdge;
+    public DecisionTreeNode getChild(String value) {
+        return children.get(value);
     }
+
 }
