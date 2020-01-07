@@ -14,7 +14,6 @@ public class DataSet {
     private String fileName;
     private Relation relation = null;
 
-
     public DataSet(String fileName) throws IOException {
         this.fileName = fileName;
         read();
@@ -36,7 +35,7 @@ public class DataSet {
                 /**
                  * For comments in middle of line
                  */
-                currentLine = currentLine.replaceAll("%.*", "");
+                currentLine = currentLine.replaceAll(".(?<!\').%.*", "");
                 lineCounter++;
                 /**
                  * General for all file, if a line is a comment or empty, ignore it
@@ -74,13 +73,15 @@ public class DataSet {
                 } else if (isDataLines) {
                     relation.addDataRow(getDataRow(currentLine));
                 } else {
-                    throw new ARFFFileFormatErrorException("Unexpected line at line " + lineCounter + " " + currentLine);
+                    throw new ARFFFileFormatErrorException(
+                            "Unexpected line at line " + lineCounter + " " + currentLine);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            reader.close();
         }
-        reader.close();
     }
 
     private boolean isComment(String line) {
@@ -108,16 +109,34 @@ public class DataSet {
         if (tokens.length < 2) {
             throw new ARFFRelationNameErrorException("Relation line error");
         }
-        return tokens[1];
+        String _name = getStringBetweenTwoChars(tokens[1], "'", "'");
+        return _name != null && !isEmpty(_name) ? _name : tokens[1];
     }
 
-    private Attribute getAttribute(String line) throws ARFFFileFormatErrorException, ARFFDataTypeErrorException, NominalAttributeErrorException {
+    public String getStringBetweenTwoChars(String input, String startChar, String endChar) {
+        try {
+            int start = input.indexOf(startChar);
+            if (start != -1) {
+                int end = input.indexOf(endChar, start + startChar.length());
+                if (end != -1) {
+                    return input.substring(start + startChar.length(), end);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return input;
+    }
+
+    private Attribute getAttribute(String line)
+            throws ARFFFileFormatErrorException, ARFFDataTypeErrorException, NominalAttributeErrorException {
         String[] tokens = line.trim().split("\\s+", 3);
         Attribute attribute = null;
         if (tokens.length < 3) {
             throw new ARFFFileFormatErrorException("Attribute line error, " + line);
         }
-        String attributeName = tokens[1];
+        String _attributeName = getStringBetweenTwoChars(tokens[1], "'", "'");
+        String attributeName = _attributeName != null && !isEmpty(_attributeName) ? _attributeName : tokens[1];
         String attributeDataType = tokens[2];
 
         if (Attribute.isNumericAttribute(attributeDataType)) {
@@ -142,12 +161,9 @@ public class DataSet {
             attribute = new DateAttribute(dateTokens[0], dateFormat);
         } else if (Attribute.isNominalAttribute(attributeDataType)) {
             /**
-             * @ATTRIBUTE name {x,y,z}
-             * Get rid of curly brackets then split by comma
+             * @ATTRIBUTE name {x,y,z} Get rid of curly brackets then split by comma
              */
-            String[] classesTokens = attributeDataType
-                    .trim()
-                    .substring(1, attributeDataType.trim().length() - 1)
+            String[] classesTokens = attributeDataType.trim().substring(1, attributeDataType.trim().length() - 1)
                     .split(",");
 
             /**
@@ -179,17 +195,18 @@ public class DataSet {
              * If it is a missing value that is "?" then present it as null
              */
             if (values[i].trim().equals("?"))
-                dataRow.addProperty(_attribute.getName(), null);
+                dataRow.addProperty(_attribute, null);
             /**
              * If it is not a missing value, then validate it
              */
             else if (_attribute.validate(values[i]))
-                dataRow.addProperty(_attribute.getName(), values[i].trim());
+                dataRow.addProperty(_attribute, values[i].trim());
             /**
              * If it fails validation then raise an exception
              */
             else
-                throw new ARFFDataValidationErrorException("Data Validation Error on attribute " + _attribute.getName() + " of type " + _attribute.getDataType() + ", value: " + values[i]);
+                throw new ARFFDataValidationErrorException("Data Validation Error on attribute " + _attribute.getName()
+                        + " of type " + _attribute.getDataType() + ", value: " + values[i]);
         }
 
         return dataRow;
@@ -197,9 +214,8 @@ public class DataSet {
 
     @Override
     public String toString() {
-        return "@RELATION " + relation.getName() + "\n" +
-                relation.getAttributes().stream().map(Object::toString).collect(Collectors.joining("\n")) + "\n" +
-                "@DATA" + "\n" +
-                relation.getData().stream().map(Object::toString).collect(Collectors.joining("\n"));
+        return "@RELATION " + relation.getName() + "\n"
+                + relation.getAttributes().stream().map(Object::toString).collect(Collectors.joining("\n")) + "\n"
+                + "@DATA" + "\n" + relation.getData().stream().map(Object::toString).collect(Collectors.joining("\n"));
     }
 }
