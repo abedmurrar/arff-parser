@@ -39,6 +39,10 @@ public class DecisionTreeNode {
         return new ArrayList<DecisionTreeNode>(children.values());
     }
 
+    public Map<String, DecisionTreeNode> getChildrenTable() {
+        return this.children;
+    }
+
     public DecisionTreeNode getChild(String value) {
         return children.get(value);
     }
