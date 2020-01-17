@@ -31,6 +31,7 @@ public class DecisionTree {
         }
 
         this.root = buildTree(new ArrayList<Attribute>(), training, null);
+        System.out.println(this.root.getAttribute().getName());
         // printTree(this.root);
         /*
          * this.validation = validation; this.test = test;
